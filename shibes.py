@@ -5,7 +5,7 @@ from discord.ext import commands
 import json
 import requests
 import os
-os.spawnl(os.P_DETACH, 'shibesbot')
+os.spawnl(os.P_NOWAIT, 'shibesbot')
 
 """ 
 "" Discord configuration
