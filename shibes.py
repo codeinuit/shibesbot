@@ -16,12 +16,12 @@ bot_prefix = "shibes"
 client = commands.Bot(command_prefix=bot_prefix)
 token = "NDM4NzcxMzI2Mzg4MjczMTUz.DcJedQ.HnyD8BMdnmIjhaGgWwJEStuHDvQ-Q"
 
-@bot.command()
+@client.command()
 async def shibes():
     response = requests.get('http://shibe.online/api/shibes')
     await client.send_message(message.channel, response.json()[0])
 
-@bot.event
+@client.event
 async def on_ready():
     print('Logged in as')
     print(client.user.name)
