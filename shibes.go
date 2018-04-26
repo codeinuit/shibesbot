@@ -7,9 +7,11 @@ import (
 	"os/signal"
 	"syscall"
 	"github.com/bwmarrin/discordgo"
+	"net/http"
+	"io/ioutil"
+	"encoding/json"
 )
 
-// Variables used for command line parameters
 var (
 	Token string
 )
@@ -51,6 +53,11 @@ func main() {
 
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the autenticated bot has access to.
+type Shibe struct {
+	 string
+}
+
+
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	// Ignore all messages created by the bot itself
@@ -66,5 +73,19 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// If the message is "pong" reply with "Ping!"
 	if m.Content == "pong" {
 		s.ChannelMessageSend(m.ChannelID, "Ping!")
+	}
+
+	if m.Content == "shibes" {
+		resp, err := http.Get("http://shibe.online/api/shibes/")
+		if err == nil {
+			defer resp.Body.Close()
+			body, err := ioutil.ReadAll(resp.Body)
+			if err == nil {
+
+			}
+			var u []string
+			json.Unmarshal(body, &u)
+			s.ChannelMessageSend(m.ChannelID, u[0])
+		}
 	}
 }
