@@ -10,6 +10,9 @@ import (
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
+	"strings"
+	"github.com/ivolo/go-giphy"
+	"math/rand"
 )
 
 var (
@@ -51,41 +54,41 @@ func main() {
 	dg.Close()
 }
 
-// This function will be called (due to AddHandler above) every time a new
-// message is created on any channel that the autenticated bot has access to.
-type Shibe struct {
-	 string
-}
-
-
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
-
-	// Ignore all messages created by the bot itself
-	// This isn't required in this specific example but it's a good practice.
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
-	// If the message is "ping" reply with "Pong!"
-	if m.Content == "ping" {
-		s.ChannelMessageSend(m.ChannelID, "Pong!")
-	}
 
-	// If the message is "pong" reply with "Ping!"
-	if m.Content == "pong" {
-		s.ChannelMessageSend(m.ChannelID, "Ping!")
-	}
-
-	if m.Content == "shibes" {
-		resp, err := http.Get("http://shibe.online/api/shibes/")
-		if err == nil {
-			defer resp.Body.Close()
-			body, err := ioutil.ReadAll(resp.Body)
+	if strings.HasPrefix(m.Content, "shibes") {
+		if m.Content == "shibes" {
+			resp, err := http.Get("http://shibe.online/api/shibes/")
 			if err == nil {
+				defer resp.Body.Close()
+				body, err := ioutil.ReadAll(resp.Body)
+				if err == nil {
 
+				}
+				var u []string
+				json.Unmarshal(body, &u)
+				s.ChannelMessageSend(m.ChannelID, u[0])
 			}
-			var u []string
-			json.Unmarshal(body, &u)
-			s.ChannelMessageSend(m.ChannelID, u[0])
+		} else if m.Content == "shibeshelp" {
+			test := &discordgo.MessageEmbed{
+				Thumbnail: &discordgo.MessageEmbedThumbnail{
+					URL: "http://img.over-blog-kiwi.com/1/47/73/14/20160709/ob_bcc896_chiot-shiba-inu-a-vendre-2016.jpg",
+				},
+				Description: "Thanks for using Shibesbot on your Discord server !\n\n" +
+					"Our purpose is to distribute many **shibes** on your server, using http://shibes.online/ as puppy distributor.",
+				Title: "Hello shibes !",
+			}
+			s.ChannelMessageSendEmbed(m.ChannelID, test)
+		} else if m.Content == "shibesgif" {
+			gp := giphy.New("PcVZFoFsmh2vhFHqSKjhvbnwq74N7JSi")
+			gifs, err := gp.Search("shiba")
+			if err != nil {
+				return
+			}
+			s.ChannelMessageSend(m.ChannelID, gifs[rand.Int() % len(gifs)].URL)
 		}
 	}
 }
