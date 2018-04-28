@@ -78,7 +78,16 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 					URL: "http://img.over-blog-kiwi.com/1/47/73/14/20160709/ob_bcc896_chiot-shiba-inu-a-vendre-2016.jpg",
 				},
 				Description: "Thanks for using Shibesbot on your Discord server !\n\n" +
-					"Our purpose is to distribute many **shibes** on your server, using http://shibes.online/ as puppy distributor.",
+					"Our purpose is to distribute many **shibes** on your server, using http://shibes.online/ as puppy distributor.\n\n",
+				Fields: []*discordgo.MessageEmbedField{
+					{
+						Name:   "Available commands",
+						Value:  "- *shibes* to get a random shibe !\n" +
+							"- *shibesgif* to get a random gif of shiba !\n" +
+							"- *shibeshelp* to get help",
+						Inline: true,
+					},
+				},
 				Title: "Hello shibes !",
 			}
 			s.ChannelMessageSendEmbed(m.ChannelID, test)
@@ -88,7 +97,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if err != nil {
 				return
 			}
-			s.ChannelMessageSend(m.ChannelID, gifs[rand.Int() % len(gifs)].URL)
+			s.ChannelMessageSend(m.ChannelID, gifs[rand.Int()%len(gifs)].URL)
 		}
 	}
 }
