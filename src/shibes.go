@@ -111,24 +111,21 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			if len(strings.Split(m.Content, " ")) == 2 {
 
 				nbr, _ = strconv.Atoi(strings.Split(m.Content, " ")[1])
-			} else {
-			}
+				if isInt(strings.Split(m.Content, " ")[1]) == true && nbr < 10 {
+					resp, err := http.Get("http://shibe.online/api/shibes?count=" + strings.Split(m.Content, " ")[1])
 
-			fmt.Print(isInt(strings.Split(m.Content, " ")[1]))
-			if isInt(strings.Split(m.Content, " ")[1]) == true && nbr < 10 {
-				resp, err := http.Get("http://shibe.online/api/shibes?count=" + strings.Split(m.Content, " ")[1])
-
-				if err == nil {
-					defer resp.Body.Close()
-					body, _ := ioutil.ReadAll(resp.Body)
-					var u []string
-					json.Unmarshal(body, &u)
-					s.ChannelMessageSend(m.ChannelID, strings.Join(u, " "))
+					if err == nil {
+						defer resp.Body.Close()
+						body, _ := ioutil.ReadAll(resp.Body)
+						var u []string
+						json.Unmarshal(body, &u)
+						s.ChannelMessageSend(m.ChannelID, strings.Join(u, " "))
+					}
+				} else if isInt(strings.Split(m.Content, " ")[1]) == true && nbr != 0 {
+					s.ChannelMessageSend(m.ChannelID, "You can't call more than 10 shibes at the time.")
+				} else if nbr <= 0 {
+					s.ChannelMessageSend(m.ChannelID, "Dude, what. You can't do that.")
 				}
-			} else if isInt(strings.Split(m.Content, " ")[1]) == true && nbr != 0{
-				s.ChannelMessageSend(m.ChannelID, "You can't call more than 10 shibes at the time.")
-			} else if nbr <= 0 {
-				s.ChannelMessageSend(m.ChannelID, "Dude, what. You can't do that.")
 			} else {
 				resp, err := http.Get("http://shibe.online/api/shibes")
 				if err == nil {
