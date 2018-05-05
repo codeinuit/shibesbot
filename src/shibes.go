@@ -107,7 +107,13 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 	if strings.HasPrefix(m.Content, "shibes") {
 		if (strings.Split(m.Content, " "))[0] == "shibes" {
-			nbr, _ := strconv.Atoi(strings.Split(m.Content, " ")[1])
+			var nbr = 0
+			if len(strings.Split(m.Content, " ")) > 0 {
+
+				nbr, _ = strconv.Atoi(strings.Split(m.Content, " ")[1])
+			} else {
+			}
+
 			fmt.Print(isInt(strings.Split(m.Content, " ")[1]))
 			if isInt(strings.Split(m.Content, " ")[1]) == true && nbr < 10 {
 				resp, err := http.Get("http://shibe.online/api/shibes?count=" + strings.Split(m.Content, " ")[1])
