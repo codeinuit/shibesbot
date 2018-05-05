@@ -108,7 +108,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if strings.HasPrefix(m.Content, "shibes") {
 		if (strings.Split(m.Content, " "))[0] == "shibes" {
 			var nbr = 0
-			if len(strings.Split(m.Content, " ")) > 0 {
+			if len(strings.Split(m.Content, " ")) == 2 {
 
 				nbr, _ = strconv.Atoi(strings.Split(m.Content, " ")[1])
 			} else {
