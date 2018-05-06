@@ -3,9 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 	"github.com/bwmarrin/discordgo"
 	"net/http"
 	"io/ioutil"
@@ -28,27 +25,7 @@ func init() {
 }
 
 func main() {
-
-	dg, err := discordgo.New("Bot " + Token)
-	if err != nil {
-		fmt.Println("error creating Discord session,", err)
-		return
-	}
-
-	dg.AddHandler(messageCreate)
-
-	err = dg.Open()
-	if err != nil {
-		fmt.Println("error opening connection,", err)
-		return
-	}
-
-	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
-
-	dg.Close()
+	initDiscord(Token)
 }
 
 func getShibesWallpaper(s string) string {
@@ -109,7 +86,6 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		if (strings.Split(m.Content, " "))[0] == "shibes" {
 			var nbr = 0
 			if len(strings.Split(m.Content, " ")) == 2 {
-
 				nbr, _ = strconv.Atoi(strings.Split(m.Content, " ")[1])
 				if isInt(strings.Split(m.Content, " ")[1]) == true && nbr < 10 {
 					resp, err := http.Get("http://shibe.online/api/shibes?count=" + strings.Split(m.Content, " ")[1])
