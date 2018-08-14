@@ -3,6 +3,9 @@
 
 The purpose of the Shibesbot is to deliver pictures, gifs or wallpapers of dog (especially Shiba Inu) when you ask him on Discord, whether it is on a server or when you send him a private message. There is not really utility here, but, shibes dude.
 
+## How can i get this bot on my server ?
+You can invite the Shibesbot directly from here. No permissions asked, he'll be sage.
+https://discordapp.com/oauth2/authorize?&client_id=438771326388273153&scope=bot&permissions=0
 
 ## Discord commands
 Many commands has been implemented. As previously described, you can ask for pictures, animated or not.
