@@ -1,19 +1,20 @@
 package main
 
 import (
-	"github.com/bwmarrin/discordgo"
 	"fmt"
 	"os"
 	"os/signal"
-	"syscall"
-	"strings"
-	"time"
 	"strconv"
+	"strings"
+	"syscall"
+	"time"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 var (
 	Users int
-	Time int
+	Time  int
 )
 
 func initDiscord(t string) {
@@ -40,10 +41,10 @@ func initDiscord(t string) {
 func commandPicker(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	var err error
 	if strings.HasPrefix(m.Content, "s") {
-		presenceUpdate(s)
 		switch m.Content {
 		case "shibes":
 			_, err = s.ChannelMessageSend(m.ChannelID, getShibes())
+			presenceUpdate(s)
 			break
 		case "sgifs":
 			_, err = s.ChannelMessageSend(m.ChannelID, getShibesGifs())
@@ -65,8 +66,8 @@ func presenceUpdate(s *discordgo.Session) {
 		Users = 0
 	}
 	Users++
-	s.UpdateStatus(Users,"shelp for help || " +
-		strconv.Itoa(Users) + " usages this day.")
+	s.UpdateStatus(Users, "shelp for help || "+
+		strconv.Itoa(Users)+" usages this day.")
 }
 
 func shibesHandler(s *discordgo.Session, m *discordgo.MessageCreate) {

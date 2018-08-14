@@ -1,12 +1,13 @@
 package main
 
 import (
-	"net/http"
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
+	"math/rand"
+	"net/http"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/ivolo/go-giphy"
-	"math/rand"
 )
 
 var (
@@ -96,7 +97,8 @@ func getHelp() *discordgo.MessageEmbed {
 			URL: "http://img.over-blog-kiwi.com/1/47/73/14/20160709/ob_bcc896_chiot-shiba-inu-a-vendre-2016.jpg",
 		},
 		Description: "Thanks for using Shibesbot on your Discord server !\n\n" +
-			"Our purpose is to distribute many **shibes** on your server, using http://shibe.online/ as puppy distributor.\n\n",
+			"Our purpose is to distribute many **shibes** on your server, using http://shibe.online/ as puppy distributor.\n\n" +
+			"Are you enjoying this bot ? You can help us spread the doge ! https://github.com/P147x/discord-shibesbot",
 		Fields: []*discordgo.MessageEmbedField{
 			{
 				Name: "Available commands",
