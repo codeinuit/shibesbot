@@ -1,7 +1,8 @@
 package main
 
 import (
-	"flag"
+	"os"
+	"fmt"
 )
 
 var (
@@ -9,9 +10,8 @@ var (
 )
 
 func init() {
-
-	flag.StringVar(&Token, "t", "", "Bot Token")
-	flag.Parse()
+	Token = os.Getenv("SHIBESBOT_TOKEN")
+	fmt.Print("Received token: ", Token)
 }
 
 func main() {

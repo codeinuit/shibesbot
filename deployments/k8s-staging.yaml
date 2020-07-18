@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shibesbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shibesbot
+  template:
+    metadata:
+      labels:
+        app: shibesbot
+    spec:
+      containers:
+        - name: shibesbot
+          image: codeinu/shibesbot:latest
+          env:
+            - name: SHIBESBOT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: shibesbot-token
+                  key: password
+     
