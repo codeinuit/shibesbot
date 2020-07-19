@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ivolo/go-giphy"
@@ -51,19 +52,30 @@ type ShibesData struct {
 	Wallpapers ShibesWallpapers
 }
 
+
 func init() {
 	req, err := http.NewRequest("GET", "https://wall.alphacoders.com/api2.0/get.php", nil)
 	if err != nil {
+		fmt.Print("Error")
+		return 
 	}
 	q := req.URL.Query()
 	q.Add("auth", "c8b66cee6ef7022a615da5cbba315f3c")
 	q.Add("method", "search")
 	q.Add("term", "Shiba")
 	req.URL.RawQuery = q.Encode()
-	resp, _ := http.Get(req.URL.String())
+	resp, err := http.Get(req.URL.String())
+	if err != nil {
+		fmt.Print("Error")
+		return
+	}
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 
+	if err != nil {
+		fmt.Print("Error")
+		return
+	}
 	var res AlphacodersData
 	json.Unmarshal(body, &res)
 	Shibes.Wallpapers.Shibes = make([]WallpaperData, len(res.Wallpapers))

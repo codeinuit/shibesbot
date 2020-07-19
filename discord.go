@@ -40,20 +40,23 @@ func initDiscord(t string) {
 
 func commandPicker(s *discordgo.Session, m *discordgo.MessageCreate) error {
 	var err error
-	if strings.HasPrefix(m.Content, "s") {
+	if strings.HasPrefix(m.Content, "p") {
 		switch m.Content {
-		case "shibes":
+		case "papainperdu":
 			_, err = s.ChannelMessageSend(m.ChannelID, getShibes())
 			presenceUpdate(s)
 			break
-		case "sgifs":
+		case "papainperdumaisanime":
 			_, err = s.ChannelMessageSend(m.ChannelID, getShibesGifs())
 			break
-		case "shelp":
+		case "painperdualaide":
 			_, err = s.ChannelMessageSendEmbed(m.ChannelID, getHelp())
 			break
-		case "swalls":
+		case "painperdumur":
 			_, err = s.ChannelMessageSend(m.ChannelID, getShibesWallpaper())
+			break
+		case "painperduquiestreslongaecriremaiscavautpeutetrelecoup":
+			_, _ = s.ChannelMessageSend(m.ChannelID, "https://giphy.com/stickers/imoji-wtf-l4FGAwUT9YmqqAZyg")
 			break
 		}
 	}
