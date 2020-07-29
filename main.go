@@ -2,18 +2,18 @@ package main
 
 import (
 	"os"
-	"fmt"
+	
+	log "github.com/sirupsen/logrus"
 )
-
-var (
-	Token string
-)
-
-func init() {
-	Token = os.Getenv("SHIBESBOT_TOKEN")
-	fmt.Print("Received token: ", Token)
-}
 
 func main() {
-	initDiscord(Token)
+	log.Info("Starting bot.")
+	
+	var token string
+	if token = os.Getenv("SHIBESBOT_TOKEN"); len(token) == 0 {
+		log.Error("Environnement variable SHIBESBOT_TOKEN is not provided")
+		return
+	}
+
+	initDiscord(token)
 }
