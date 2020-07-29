@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"strconv"
@@ -10,6 +9,8 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -20,43 +21,40 @@ var (
 func initDiscord(t string) {
 	dg, err := discordgo.New("Bot " + t)
 	if err != nil {
-		fmt.Println("error creating Discord session,", err)
+		log.Error("Connexion error: ", err.Error())
 		return
 	}
 
 	dg.AddHandler(shibesHandler)
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("error opening connection,", err)
+		log.Error("Connexion error : ", err.Error())
 		return
 	}
 
-	fmt.Println("Shibes ready for duty. Press CTRL+C for no shibes.")
+	log.Info("Bot OK, ready to bork on people")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
+	log.Info("Signal received, stopping in progress")
 	dg.Close()
 }
 
-func commandPicker(s *discordgo.Session, m *discordgo.MessageCreate) error {
-	var err error
-	if strings.HasPrefix(m.Content, "p") {
+func commandPicker(s *discordgo.Session, m *discordgo.MessageCreate) (err error) {
+	if strings.HasPrefix(m.Content, "s") {
 		switch m.Content {
-		case "papainperdu":
+		case "shibes":
 			_, err = s.ChannelMessageSend(m.ChannelID, getShibes())
 			presenceUpdate(s)
 			break
-		case "papainperdumaisanime":
+		case "sgifs":
 			_, err = s.ChannelMessageSend(m.ChannelID, getShibesGifs())
 			break
-		case "painperdualaide":
+		case "shelp":
 			_, err = s.ChannelMessageSendEmbed(m.ChannelID, getHelp())
 			break
-		case "painperdumur":
+		case "swalls":
 			_, err = s.ChannelMessageSend(m.ChannelID, getShibesWallpaper())
-			break
-		case "painperduquiestreslongaecriremaiscavautpeutetrelecoup":
-			_, _ = s.ChannelMessageSend(m.ChannelID, "https://giphy.com/stickers/imoji-wtf-l4FGAwUT9YmqqAZyg")
 			break
 		}
 	}

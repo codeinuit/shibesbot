@@ -5,10 +5,10 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"fmt"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/ivolo/go-giphy"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -52,12 +52,11 @@ type ShibesData struct {
 	Wallpapers ShibesWallpapers
 }
 
-
 func init() {
 	req, err := http.NewRequest("GET", "https://wall.alphacoders.com/api2.0/get.php", nil)
 	if err != nil {
-		fmt.Print("Error")
-		return 
+		log.Error("Error while getting images : ", err.Error())
+		return
 	}
 	q := req.URL.Query()
 	q.Add("auth", "c8b66cee6ef7022a615da5cbba315f3c")
@@ -66,14 +65,14 @@ func init() {
 	req.URL.RawQuery = q.Encode()
 	resp, err := http.Get(req.URL.String())
 	if err != nil {
-		fmt.Print("Error")
+		log.Error("Error while getting images : ", err.Error())
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		fmt.Print("Error")
+		log.Error("Error while getting images : ", err.Error())
 		return
 	}
 	var res AlphacodersData
