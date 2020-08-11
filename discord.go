@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
-	
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -17,6 +17,21 @@ var (
 	Users int
 	Time  int
 )
+
+func welcome(s *discordgo.Session, e *discordgo.GuildCreate) {
+	log.WithFields(log.Fields{
+		"server": e.Name,
+		"syschan": e.SystemChannelID,
+	}).Info("I got invited in a new server !")
+
+	_, err := s.ChannelMessageSend(e.SystemChannelID, "Woof woof !")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"server": e.Name,
+			"error": err.Error(),
+		}).Error("couldn't bork !")
+	}
+}
 
 func initDiscord(t string) {
 	dg, err := discordgo.New("Bot " + t)
@@ -26,6 +41,7 @@ func initDiscord(t string) {
 	}
 
 	dg.AddHandler(shibesHandler)
+	dg.AddHandler(welcome)
 	err = dg.Open()
 	if err != nil {
 		log.Error("Connexion error : ", err.Error())
