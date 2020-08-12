@@ -18,9 +18,27 @@ var (
 	Time  int
 )
 
+func findAvailableChan(s *discordgo.Session, c []*discordgo.Channel) *discordgo.Channel {
+	log.WithFields(log.Fields{
+		"bit": discordgo.PermissionSendMessages,
+	}).Info("Checking permissions")
+	for k := range c {
+		// Checks if this is a text chat
+		if c[k].Type == discordgo.ChannelTypeGuildText {
+			perm, err := s.UserChannelPermissions(s.State.User.ID, c[k].ID)
+			if err == nil && (discordgo.PermissionSendMessages | discordgo.PermissionViewChannel) == (perm & (discordgo.PermissionSendMessages | discordgo.PermissionViewChannel) ) {
+				log.WithFields(log.Fields{
+					"topic": c[k].Name,
+				}).Info("Found writable chan")
+				return c[k]
+			}
+		}
+	}
+	return nil
+}
 func welcome(s *discordgo.Session, e *discordgo.GuildCreate) {
 	log.WithFields(log.Fields{
-		"server": e.Name,
+		"server":  e.Name,
 		"syschan": e.SystemChannelID,
 	}).Info("I got invited in a new server !")
 
@@ -28,8 +46,14 @@ func welcome(s *discordgo.Session, e *discordgo.GuildCreate) {
 	if err != nil {
 		log.WithFields(log.Fields{
 			"server": e.Name,
-			"error": err.Error(),
+			"error":  err.Error(),
 		}).Error("couldn't bork !")
+		
+		c := findAvailableChan(s, e.Channels)
+		if c != nil {
+			s.ChannelMessageSend(c.ID, "awoo!")
+			
+		}
 	}
 }
 
