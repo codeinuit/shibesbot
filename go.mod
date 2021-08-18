@@ -1,9 +1,11 @@
-module github.com/P147x/shibesbot/app
+module github.com/P147x/shibesbot
 
-go 1.14
+go 1.16
 
 require (
-	github.com/bwmarrin/discordgo v0.21.1
+	github.com/bwmarrin/discordgo v0.23.3-0.20210627161652-421e14965030
 	github.com/ivolo/go-giphy v0.0.0-20150927080050-d31b832022e4
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.8.1
+	golang.org/x/crypto v0.0.0-20210616213533-5ff15b29337e // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
 )

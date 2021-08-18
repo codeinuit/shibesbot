@@ -1,14 +1,14 @@
 package main
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"github.com/ivolo/go-giphy"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/ivolo/go-giphy"
 	log "github.com/sirupsen/logrus"
+	"encoding/json"
 )
 
 var (
