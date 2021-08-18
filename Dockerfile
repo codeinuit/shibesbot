@@ -1,7 +1,7 @@
-FROM golang:1.14.4 AS build
+FROM golang:1.16.5 AS build
 WORKDIR $GOPATH/src/github.com/P147x/shibesbot
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -o app .
+RUN CGO_ENABLED=0 GOOS=linux go build -o app ./cmd/shibesbot
 
 FROM alpine:latest
 WORKDIR /root/
