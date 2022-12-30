@@ -48,6 +48,46 @@ var (
 	}
 )
 
+type Bot interface {
+	Run() error
+	Stop() error
+	SetShardOptions(shardID int, shardCount int)
+}
+
+type DiscordBot struct {
+	Session *discordgo.Session
+}
+
+func newBot(token string) (Bot, error) {
+	newSession, err := discordgo.New("Bot " + token)
+
+	newSession.AddHandler(commandPicker)
+	//for _, cmd := range commands {
+	//	newSession.ApplicationCommandCreate(newSession.State.User.ID, "", cmd)
+	//}
+
+	return &DiscordBot{
+		Session: newSession,
+	}, err
+}
+
+func (b *DiscordBot) Run() error {
+	log.Info("Running bot")
+	return b.Session.Open()
+}
+
+func (b *DiscordBot) Stop() error {
+	log.Info("Closing bot connexion")
+	return b.Session.Close()
+}
+
+func (b *DiscordBot) SetShardOptions(shardID, shardCount int) {
+	log.WithFields(log.Fields{
+		"ShardCount": shardCount,
+		"ShardID":    shardID,
+	}).Info("Updating shard settings")
+}
+
 func initDiscord(t string) {
 	var err error
 	BotSession, err = discordgo.New("Bot " + t)
@@ -55,6 +95,19 @@ func initDiscord(t string) {
 		log.Error("Connexion error: ", err.Error())
 		return
 	}
+
+	shardCount, err := strconv.Atoi(os.Getenv("SHIBESBOT_SHARD_COUNT"))
+	shardID, err := strconv.Atoi(os.Getenv("SHIBESBOT_SHARD_ID"))
+	if err != nil {
+		shardCount = 1
+	}
+
+	BotSession.ShardCount = shardCount
+	BotSession.ShardID = shardID
+	log.WithFields(log.Fields{
+		"ShardCount": BotSession.ShardCount,
+		"ShardID":    BotSession.ShardID,
+	}).Info("Bot using Shard Mode")
 	BotSession.AddHandler(commandPicker)
 	err = BotSession.Open()
 	if err != nil {
@@ -80,7 +133,7 @@ func commandPicker(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
 	case "shibes":
 		response = getShibes()
-		incrementPresenceUpdate()
+		// incrementPresenceUpdate()
 	case "sgifs":
 		response = getShibesGifs()
 	case "shelp":
