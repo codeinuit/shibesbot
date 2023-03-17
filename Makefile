@@ -14,4 +14,5 @@ test:
 clean:
 	rm -f bin/$(BINARY)
 
+
 .PHONY: all clean
