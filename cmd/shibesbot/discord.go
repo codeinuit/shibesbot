@@ -1,24 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	"os/signal"
-	"strconv"
-	"sync"
-	"syscall"
-	"time"
-
-	"github.com/P147x/shibesbot/pkg/logger"
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
-	Users           int
-	UsageResetTimer time.Timer
-	Mtx             sync.Mutex
-	BotSession      *discordgo.Session
-
 	commands = []*discordgo.ApplicationCommand{
 		{
 			Name:        "shibes",
@@ -47,39 +33,35 @@ var (
 	}
 )
 
-func initDiscord(log logger.Logger, t string) {
+func (sb *Shibesbot) initDiscord() error {
 	var err error
-	BotSession, err = discordgo.New("Bot " + t)
+
+	sb.session, err = discordgo.New("Bot " + sb.apiConfigurations.discordToken)
 	if err != nil {
-		log.Error("Connexion error: ", err.Error())
-		return
-	}
-	BotSession.AddHandler(commandPicker)
-	err = BotSession.Open()
-	if err != nil {
-		log.Error("Connexion error : ", err.Error())
-		return
-	}
-	defer BotSession.Close()
-	for _, cmd := range commands {
-		BotSession.ApplicationCommandCreate(BotSession.State.User.ID, "", cmd)
+		return err
 	}
 
-	resetUsageCounter(log)
-	log.Info("Bot OK, ready to bork on people")
-	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
-	<-sc
-	log.Info("Signal received, stopping in progress")
+	sb.session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) { sb.commandPicker(s, i) })
+	if err = sb.session.Open(); err != nil {
+		return err
+	}
+
+	for _, cmd := range commands {
+		_, err := sb.session.ApplicationCommandCreate(sb.session.State.User.ID, "", cmd)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func commandPicker(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	fmt.Println("command received: " + i.ApplicationCommandData().Name)
+func (sb *Shibesbot) commandPicker(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	sb.log.Info("command received: " + i.ApplicationCommandData().Name)
 	var response string
 	switch i.ApplicationCommandData().Name {
 	case "shibes":
-		response = getShibes()
-		incrementPresenceUpdate()
+		response = sb.getShibes()
 	case "sgifs":
 		response = getShibesGifs()
 	case "shelp":
@@ -100,32 +82,4 @@ func commandPicker(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			Content: response,
 		},
 	})
-}
-
-func resetUsageCounter(log logger.Logger) {
-	t := time.Now()
-	n := time.Date(t.Year(), t.Month(), t.Day(), 24, 0, 0, 0, t.Location())
-	resetPresenceUpdate()
-	log.Info("Reset programmed in ", n.Sub(t).String())
-	f := func() { resetUsageCounter(log) }
-	time.AfterFunc(n.Sub(t), f)
-}
-
-func resetPresenceUpdate() {
-	Mtx.Lock()
-	defer Mtx.Unlock()
-	Users = 0
-	updatePresenceUpdate(BotSession)
-}
-
-func incrementPresenceUpdate() {
-	Mtx.Lock()
-	defer Mtx.Unlock()
-	Users++
-	updatePresenceUpdate(BotSession)
-}
-
-func updatePresenceUpdate(s *discordgo.Session) {
-	s.UpdateGameStatus(0, "shelp for help || "+
-		strconv.Itoa(Users)+" usages this day.")
 }
