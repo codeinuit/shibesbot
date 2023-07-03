@@ -5,14 +5,13 @@ import (
 
 	"github.com/P147x/shibesbot/pkg/logger"
 	"github.com/P147x/shibesbot/pkg/logger/logrus"
-	log "github.com/sirupsen/logrus"
 )
 
 func main() {
-	log.Info("Starting bot.")
-	var logger logger.Logger
+	var log logger.Logger
 
-	logger = logrus.NewLogrusLogger()
+	log = logrus.NewLogrusLogger()
+	log.Info("Starting Shibesbot")
 
 	var token string
 	if token = os.Getenv("SHIBESBOT_TOKEN"); len(token) == 0 {
@@ -20,5 +19,5 @@ func main() {
 		return
 	}
 
-	initDiscord(token)
+	initDiscord(log, token)
 }

@@ -9,9 +9,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/P147x/shibesbot/pkg/logger"
 	"github.com/bwmarrin/discordgo"
-
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -48,7 +47,7 @@ var (
 	}
 )
 
-func initDiscord(t string) {
+func initDiscord(log logger.Logger, t string) {
 	var err error
 	BotSession, err = discordgo.New("Bot " + t)
 	if err != nil {
@@ -66,7 +65,7 @@ func initDiscord(t string) {
 		BotSession.ApplicationCommandCreate(BotSession.State.User.ID, "", cmd)
 	}
 
-	resetUsageCounter()
+	resetUsageCounter(log)
 	log.Info("Bot OK, ready to bork on people")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
@@ -103,12 +102,13 @@ func commandPicker(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	})
 }
 
-func resetUsageCounter() {
+func resetUsageCounter(log logger.Logger) {
 	t := time.Now()
 	n := time.Date(t.Year(), t.Month(), t.Day(), 24, 0, 0, 0, t.Location())
 	resetPresenceUpdate()
 	log.Info("Reset programmed in ", n.Sub(t).String())
-	time.AfterFunc(n.Sub(t), resetUsageCounter)
+	f := func() { resetUsageCounter(log) }
+	time.AfterFunc(n.Sub(t), f)
 }
 
 func resetPresenceUpdate() {
