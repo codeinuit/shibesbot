@@ -41,11 +41,11 @@ func initConfiguration() *Shibesbot {
 			giphyToken:       os.Getenv(GIPHY_TOKEN),
 		},
 	}
-
 }
 
 func main() {
 	sb := initConfiguration()
+	sb.initRequests()
 	sb.log.Info("Starting Shibesbot")
 
 	if len(sb.apiConfigurations.discordToken) <= 0 {
@@ -63,7 +63,7 @@ func main() {
 			return
 		}
 
-		sb.log.Error("Discord session closed successfully")
+		sb.log.Info("Discord session closed successfully")
 	}()
 
 	sb.log.Info("Shibesbot OK, ready to nicely bork on people")
