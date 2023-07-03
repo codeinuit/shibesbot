@@ -4,11 +4,13 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+
 	"github.com/ivolo/go-giphy"
+
+	"encoding/json"
 
 	"github.com/bwmarrin/discordgo"
 	log "github.com/sirupsen/logrus"
-	"encoding/json"
 )
 
 var (
@@ -52,27 +54,27 @@ type ShibesData struct {
 	Wallpapers ShibesWallpapers
 }
 
-func init() {
+func (sb *Shibesbot) initRequests() {
 	req, err := http.NewRequest("GET", "https://wall.alphacoders.com/api2.0/get.php", nil)
 	if err != nil {
 		log.Error("Error while getting images : ", err.Error())
 		return
 	}
 	q := req.URL.Query()
-	q.Add("auth", "c8b66cee6ef7022a615da5cbba315f3c")
+	q.Add("auth", sb.apiConfigurations.alphacodersToken)
 	q.Add("method", "search")
 	q.Add("term", "Shiba")
 	req.URL.RawQuery = q.Encode()
 	resp, err := http.Get(req.URL.String())
 	if err != nil {
-		log.Error("Error while getting images : ", err.Error())
+		sb.log.Error("Error while getting images : ", err.Error())
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		log.Error("Error while getting images : ", err.Error())
+		sb.log.Error("Error while getting images : ", err.Error())
 		return
 	}
 	var res AlphacodersData
@@ -81,13 +83,13 @@ func init() {
 	Shibes.Wallpapers.Shibes = res.Wallpapers
 	Shibes.Wallpapers.Total = len(res.Wallpapers)
 
-	gp := giphy.New("PcVZFoFsmh2vhFHqSKjhvbnwq74N7JSi")
+	gp := giphy.New(sb.apiConfigurations.giphyToken)
 	Shibes.Gifs.Shibes, _ = gp.Search("shiba")
 	Shibes.Gifs.Total = len(Shibes.Gifs.Shibes)
 	Shibes.Gifs.Cursor = 0
 }
 
-func getShibes() string {
+func (sb *Shibesbot) getShibes() string {
 	if Shibes.Images.Cursor >= Shibes.Images.Total {
 		Shibes.Images.Cursor = 0
 		Shibes.Images.Total = 10
@@ -96,6 +98,7 @@ func getShibes() string {
 			defer resp.Body.Close()
 			body, _ := ioutil.ReadAll(resp.Body)
 			json.Unmarshal(body, &Shibes.Images.Shibes)
+			sb.log.Info("Updated ", Shibes.Images.Total, " pictures from shibes.online")
 		}
 	}
 	Shibes.Images.Cursor++
