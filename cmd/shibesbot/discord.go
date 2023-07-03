@@ -1,17 +1,10 @@
 package main
 
 import (
-	"sync"
-	"time"
-
 	"github.com/bwmarrin/discordgo"
 )
 
 var (
-	Users           int
-	UsageResetTimer time.Timer
-	Mtx             sync.Mutex
-
 	commands = []*discordgo.ApplicationCommand{
 		{
 			Name:        "shibes",
@@ -60,7 +53,6 @@ func (sb *Shibesbot) initDiscord() error {
 		}
 	}
 
-	// resetUsageCounter(log)
 	return nil
 }
 
@@ -70,7 +62,6 @@ func (sb *Shibesbot) commandPicker(s *discordgo.Session, i *discordgo.Interactio
 	switch i.ApplicationCommandData().Name {
 	case "shibes":
 		response = sb.getShibes()
-		// incrementPresenceUpdate()
 	case "sgifs":
 		response = getShibesGifs()
 	case "shelp":
@@ -92,31 +83,3 @@ func (sb *Shibesbot) commandPicker(s *discordgo.Session, i *discordgo.Interactio
 		},
 	})
 }
-
-// func resetUsageCounter(log logger.Logger) {
-// 	t := time.Now()
-// 	n := time.Date(t.Year(), t.Month(), t.Day(), 24, 0, 0, 0, t.Location())
-// 	resetPresenceUpdate()
-// 	log.Info("Reset programmed in ", n.Sub(t).String())
-// 	f := func() { resetUsageCounter(log) }
-// 	time.AfterFunc(n.Sub(t), f)
-// }
-
-// func resetPresenceUpdate() {
-// 	Mtx.Lock()
-// 	defer Mtx.Unlock()
-// 	Users = 0
-// 	updatePresenceUpdate(BotSession)
-// }
-//
-// func incrementPresenceUpdate() {
-// 	Mtx.Lock()
-// 	defer Mtx.Unlock()
-// 	Users++
-// 	updatePresenceUpdate(BotSession)
-// }
-
-// func updatePresenceUpdate(s *discordgo.Session) {
-// 	s.UpdateGameStatus(0, "shelp for help || "+
-// 		strconv.Itoa(Users)+" usages this day.")
-// }
