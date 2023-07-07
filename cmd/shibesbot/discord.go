@@ -1,6 +1,10 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"time"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -42,6 +46,15 @@ func (sb *Shibesbot) initDiscord() error {
 	}
 
 	sb.session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) { sb.commandPicker(s, i) })
+	sb.session.AddHandlerOnce(func(s *discordgo.Session, i *discordgo.Ready) {
+		t := time.Now()
+		key := fmt.Sprintf("usage:%d%d%d", t.Day(), t.Month(), t.Year())
+		count, err := sb.cache.Get(context.Background(), key)
+		if err != nil {
+			sb.log.Warn("could not get daily counter from cache : ", err.Error())
+		}
+		s.UpdateGameStatus(0, fmt.Sprintf("used %s times today", count))
+	})
 	if err = sb.session.Open(); err != nil {
 		return err
 	}
@@ -82,4 +95,23 @@ func (sb *Shibesbot) commandPicker(s *discordgo.Session, i *discordgo.Interactio
 			Content: response,
 		},
 	})
+	count := sb.updateDailyCounter()
+	s.UpdateGameStatus(0, fmt.Sprintf("used %d times today", count))
+}
+
+func (sb *Shibesbot) updateDailyCounter() int64 {
+	t := time.Now()
+	key := fmt.Sprintf("usage:%d%d%d", t.Day(), t.Month(), t.Year())
+	count, err := sb.cache.Incr(context.Background(), key)
+	if err != nil {
+		sb.log.Warn("could not get daily counter from cache : ", err.Error())
+		return 0
+	}
+	countInt, ok := count.(int64)
+	if !ok {
+		sb.log.Warn("could not get daily counter from cache")
+		return 0
+	}
+
+	return countInt
 }

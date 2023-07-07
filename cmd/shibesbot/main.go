@@ -1,20 +1,31 @@
 package main
 
 import (
+	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 
+	"github.com/P147x/shibesbot/pkg/cache"
+	"github.com/P147x/shibesbot/pkg/cache/redis"
 	"github.com/P147x/shibesbot/pkg/logger"
 	"github.com/P147x/shibesbot/pkg/logger/logrus"
 	"github.com/bwmarrin/discordgo"
 )
 
+// ENV variables
 const (
 	DISCORD_TOKEN      = "SHIBESBOT_TOKEN"
 	ALPHACODERS_TOKEN  = "ALPHACODERS_TOKEN"
 	SHIBESONLINE_TOKEN = "SHIBESONLINE_TOKEN"
 	GIPHY_TOKEN        = "GIPHY_TOKEN"
+
+	// Redis configuration
+	REDIS_ADDR = "REDIS_ADDR"
+	REDIS_PORT = "REDIS_PORT"
+	REDIS_PASS = "REDIS_PASS"
+	REDIS_DB   = "REDIS_DB"
 )
 
 type ApiConfigurations struct {
@@ -29,11 +40,28 @@ type Shibesbot struct {
 
 	apiConfigurations ApiConfigurations
 	log               logger.Logger
+	cache             cache.Cache
 }
 
 func initConfiguration() *Shibesbot {
+	port, err := strconv.Atoi(os.Getenv(REDIS_PORT))
+	if err != nil {
+		port = 6379
+	}
+
+	r, err := redis.NewRedisCache(redis.RedisOptions{
+		Address:  os.Getenv(REDIS_ADDR),
+		Port:     int32(port),
+		Password: os.Getenv(REDIS_PASS),
+	})
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	return &Shibesbot{
-		log: logrus.NewLogrusLogger(),
+		cache: r,
+		log:   logrus.NewLogrusLogger(),
 		apiConfigurations: ApiConfigurations{
 			discordToken:     os.Getenv(DISCORD_TOKEN),
 			alphacodersToken: os.Getenv(ALPHACODERS_TOKEN),
