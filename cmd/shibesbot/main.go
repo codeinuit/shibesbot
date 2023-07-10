@@ -1,17 +1,22 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"strconv"
+	"sync"
 	"syscall"
+	"time"
 
 	"github.com/P147x/shibesbot/pkg/cache"
 	"github.com/P147x/shibesbot/pkg/cache/redis"
 	"github.com/P147x/shibesbot/pkg/logger"
 	"github.com/P147x/shibesbot/pkg/logger/logrus"
 	"github.com/bwmarrin/discordgo"
+	"github.com/robfig/cron/v3"
 )
 
 // ENV variables
@@ -37,6 +42,9 @@ type ApiConfigurations struct {
 
 type Shibesbot struct {
 	session *discordgo.Session
+
+	dailyKey string
+	mtx      sync.RWMutex
 
 	apiConfigurations ApiConfigurations
 	log               logger.Logger
@@ -71,10 +79,45 @@ func initConfiguration() *Shibesbot {
 	}
 }
 
+func (sb *Shibesbot) setDailyKey() {
+	sb.log.Info("setting daily counter")
+	sb.mtx.Lock()
+	defer sb.mtx.Unlock()
+
+	t := time.Now()
+	key := fmt.Sprintf("usage:%d%d%d", t.Day(), t.Month(), t.Year())
+
+	isUnset, err := sb.cache.SetNX(context.Background(), key, 0)
+	if err != nil {
+		sb.log.Warn("could not update and retrieve usage count: ", err.Error())
+		return
+	}
+
+	if isUnset == true {
+		count, err := sb.cache.Get(context.Background(), key)
+
+		if err != nil {
+			sb.log.Warn("could not update and retrieve usage count: ", err.Error())
+			return
+		}
+
+		countInt, ok := count.(int64)
+		if !ok {
+			sb.log.Warn("could not set daily counter")
+			return
+		}
+
+		sb.setDailyCounter(countInt)
+
+		return
+	}
+}
+
 func main() {
 	sb := initConfiguration()
 	sb.initRequests()
 	sb.log.Info("starting Shibesbot")
+	c := cron.New()
 
 	if len(sb.apiConfigurations.discordToken) <= 0 {
 		sb.log.Error("environnement variable SHIBESBOT_TOKEN is not provided")
@@ -93,6 +136,19 @@ func main() {
 
 		sb.log.Info("discord session closed successfully")
 	}()
+
+	_, err := c.AddFunc("0 0 * * *", func() {
+		sb.log.Info("running daily counter update job")
+		sb.setDailyKey()
+	})
+
+	if err != nil {
+		sb.log.Error("could not create cronjob: ", err.Error())
+		return
+	}
+
+	c.Start()
+	defer c.Stop()
 
 	sb.log.Info("shibesbot OK, ready to nicely bork on people")
 
