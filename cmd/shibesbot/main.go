@@ -74,30 +74,30 @@ func initConfiguration() *Shibesbot {
 func main() {
 	sb := initConfiguration()
 	sb.initRequests()
-	sb.log.Info("Starting Shibesbot")
+	sb.log.Info("starting Shibesbot")
 
 	if len(sb.apiConfigurations.discordToken) <= 0 {
-		sb.log.Error("Environnement variable SHIBESBOT_TOKEN is not provided")
+		sb.log.Error("environnement variable SHIBESBOT_TOKEN is not provided")
 		return
 	}
 
 	if err := sb.initDiscord(); err != nil {
-		sb.log.Error("Connexion error: ", err.Error())
+		sb.log.Error("connexion error: ", err.Error())
 		return
 	}
 	defer func() {
 		if err := sb.session.Close(); err != nil {
-			sb.log.Error("Discord session could not close properly:", err.Error())
+			sb.log.Error("discord session could not close properly:", err.Error())
 			return
 		}
 
-		sb.log.Info("Discord session closed successfully")
+		sb.log.Info("discord session closed successfully")
 	}()
 
-	sb.log.Info("Shibesbot OK, ready to nicely bork on people")
+	sb.log.Info("shibesbot OK, ready to nicely bork on people")
 
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-	sb.log.Info("Stop signal has been received, stopping Shibesbot..")
+	sb.log.Info("stop signal has been received, stopping Shibesbot..")
 }
