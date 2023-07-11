@@ -90,23 +90,31 @@ func (sb *Shibesbot) commandPicker(s *discordgo.Session, i *discordgo.Interactio
 	case "sgifs":
 		response = getShibesGifs()
 	case "shelp":
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{getHelp()},
 			},
 		})
+		if err != nil {
+			sb.log.Error("could not answer to user help command: ", err.Error())
+		}
 		return
 	case "swalls":
 		response = getShibesWallpaper()
 	}
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: response,
 		},
 	})
+
+	if err != nil {
+		sb.log.Error("could not answer to user help command: ", err.Error())
+		return
+	}
 
 	sb.updateDailyCounter()
 }
@@ -129,5 +137,8 @@ func (sb *Shibesbot) updateDailyCounter() {
 }
 
 func (sb *Shibesbot) setDailyCounter(count int64) {
-	sb.session.UpdateGameStatus(0, fmt.Sprintf("used %d times today", count))
+	err := sb.session.UpdateGameStatus(0, fmt.Sprintf("used %d times today", count))
+	if err != nil {
+		sb.log.Warn("could not update daily counter: ", err.Error())
+	}
 }

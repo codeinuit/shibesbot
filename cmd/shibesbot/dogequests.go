@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 
@@ -79,14 +78,12 @@ func initWallpapers(t string) (wp ShibesWallpapers, err error) {
 		return wpEmpty, err
 	}
 	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-
+	var res AlphacodersData
+	err = json.NewDecoder(resp.Body).Decode(&res)
 	if err != nil {
 		return wpEmpty, err
-
 	}
-	var res AlphacodersData
-	json.Unmarshal(body, &res)
+
 	wp.Shibes = make([]WallpaperData, len(res.Wallpapers))
 	wp.Shibes = res.Wallpapers
 	wp.Total = len(res.Wallpapers)
@@ -119,13 +116,13 @@ func (sb *Shibesbot) initRequests() {
 	Shibes.Wallpapers, err = initWallpapers(sb.apiConfigurations.alphacodersToken)
 	sb.log.Info("retrieved ", Shibes.Wallpapers.Total, " wallpapers")
 	if err != nil {
-		sb.log.Warn(err)
+		sb.log.Warn("could not retrieve wallpapers: ", err.Error())
 	}
 
 	Shibes.Gifs, err = initGifs(sb.apiConfigurations.giphyToken)
 	sb.log.Info("retrieved ", Shibes.Gifs.Total, " gifs")
 	if err != nil {
-		sb.log.Warn(err)
+		sb.log.Warn("could not retrieve gifs: ", err.Error())
 	}
 
 }
@@ -135,12 +132,17 @@ func (sb *Shibesbot) getShibes() string {
 		Shibes.Images.Cursor = 0
 		Shibes.Images.Total = 10
 		resp, err := http.Get("http://shibe.online/api/shibes?count=10")
-		if err == nil {
-			defer resp.Body.Close()
-			body, _ := ioutil.ReadAll(resp.Body)
-			json.Unmarshal(body, &Shibes.Images.Shibes)
-			sb.log.Info("Updated ", Shibes.Images.Total, " pictures from shibes.online")
+		if err != nil {
+			sb.log.Warn("could not get images from shibes.online: ", err.Error())
+			return ""
 		}
+		defer resp.Body.Close()
+		err = json.NewDecoder(resp.Body).Decode(&Shibes.Images.Shibes)
+		if err != nil {
+			sb.log.Warn("could not get images from shibes.online: ", err.Error())
+			return ""
+		}
+		sb.log.Info("Updated ", Shibes.Images.Total, " pictures from shibes.online")
 	}
 	Shibes.Images.Cursor++
 	return Shibes.Images.Shibes[Shibes.Images.Cursor-1]

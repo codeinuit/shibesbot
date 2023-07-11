@@ -153,7 +153,7 @@ func main() {
 	sb.log.Info("shibesbot OK, ready to nicely bork on people")
 
 	sc := make(chan os.Signal, 1)
-	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
+	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 	<-sc
 	sb.log.Info("stop signal has been received, stopping Shibesbot..")
 }
