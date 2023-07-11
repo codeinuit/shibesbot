@@ -1,6 +1,10 @@
 package main
 
 import (
+	"context"
+	"fmt"
+	"strconv"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -42,6 +46,27 @@ func (sb *Shibesbot) initDiscord() error {
 	}
 
 	sb.session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) { sb.commandPicker(s, i) })
+	sb.session.AddHandlerOnce(func(s *discordgo.Session, i *discordgo.Ready) {
+		count, err := sb.cache.Get(context.Background(), sb.dailyKey)
+		if err != nil {
+			sb.log.Warn("could not get daily counter from cache : ", err.Error())
+			return
+		}
+
+		countString, ok := count.(string)
+		if !ok {
+			sb.log.Warn("could not get daily counter from cache : conversion error")
+			return
+		}
+		countInt, err := strconv.Atoi(countString)
+		if err != nil {
+			sb.log.Warn("could not get daily counter from cache : ", err.Error())
+			return
+		}
+
+		sb.setDailyCounter(int64(countInt))
+	})
+
 	if err = sb.session.Open(); err != nil {
 		return err
 	}
@@ -82,4 +107,27 @@ func (sb *Shibesbot) commandPicker(s *discordgo.Session, i *discordgo.Interactio
 			Content: response,
 		},
 	})
+
+	sb.updateDailyCounter()
+}
+
+func (sb *Shibesbot) updateDailyCounter() {
+	sb.mtx.RLock()
+	defer sb.mtx.RUnlock()
+	count, err := sb.cache.Incr(context.Background(), sb.dailyKey)
+	if err != nil {
+		sb.log.Warn("could not get daily counter from cache : ", err.Error())
+		return
+	}
+	countInt, ok := count.(int64)
+	if !ok {
+		sb.log.Warn("could not get daily counter from cache")
+		return
+	}
+
+	sb.setDailyCounter(countInt)
+}
+
+func (sb *Shibesbot) setDailyCounter(count int64) {
+	sb.session.UpdateGameStatus(0, fmt.Sprintf("used %d times today", count))
 }

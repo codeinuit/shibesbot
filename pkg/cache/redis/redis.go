@@ -44,3 +44,7 @@ func (r *RedisDB) Set(ctx context.Context, k, v string) (any, error) {
 func (r *RedisDB) Incr(ctx context.Context, k string) (any, error) {
 	return r.client.Incr(ctx, k).Result()
 }
+
+func (r *RedisDB) SetNX(ctx context.Context, k string, v any) (any, error) {
+	return r.client.SetNX(ctx, k, v, 0).Result()
+}
