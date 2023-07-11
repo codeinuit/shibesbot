@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -49,9 +50,23 @@ func (sb *Shibesbot) initDiscord() error {
 		count, err := sb.cache.Get(context.Background(), sb.dailyKey)
 		if err != nil {
 			sb.log.Warn("could not get daily counter from cache : ", err.Error())
+			return
 		}
-		s.UpdateGameStatus(0, fmt.Sprintf("used %s times today", count))
+
+		countString, ok := count.(string)
+		if !ok {
+			sb.log.Warn("could not get daily counter from cache : conversion error")
+			return
+		}
+		countInt, err := strconv.Atoi(countString)
+		if err != nil {
+			sb.log.Warn("could not get daily counter from cache : ", err.Error())
+			return
+		}
+
+		sb.setDailyCounter(int64(countInt))
 	})
+
 	if err = sb.session.Open(); err != nil {
 		return err
 	}
