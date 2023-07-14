@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -47,6 +48,10 @@ func (sb *Shibesbot) initDiscord() error {
 
 	sb.session.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) { sb.commandPicker(s, i) })
 	sb.session.AddHandlerOnce(func(s *discordgo.Session, i *discordgo.Ready) {
+		t := time.Now()
+		key := fmt.Sprintf("usage:%d%d%d", t.Day(), t.Month(), t.Year())
+		sb.dailyKey = key
+
 		count, err := sb.cache.Get(context.Background(), sb.dailyKey)
 		if err != nil {
 			sb.log.Warn("could not get daily counter from cache : ", err.Error())

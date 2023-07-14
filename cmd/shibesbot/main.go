@@ -108,6 +108,7 @@ func (sb *Shibesbot) setDailyKey() {
 		}
 
 		sb.setDailyCounter(countInt)
+		sb.dailyKey = key
 
 		return
 	}
