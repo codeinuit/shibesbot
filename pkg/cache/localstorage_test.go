@@ -16,7 +16,10 @@ func TestLocalStorage(t *testing.T) {
 	const value string = "test"
 
 	cache = localstorage.NewLocalStorageCache()
-	cache.Set(context.Background(), key, value)
+	setValue, error := cache.Set(context.Background(), key, value)
+	assert.Nil(t, error)
+	assert.Equal(t, value, setValue)
+
 	awaitedValue, error := cache.Get(context.Background(), key)
 
 	assert.Equal(t, nil, error)
@@ -32,7 +35,10 @@ func TestLocalStorageIncr(t *testing.T) {
 
 	cache = localstorage.NewLocalStorageCache()
 
-	cache.Set(context.Background(), key, value)
+	setValue, error := cache.Set(context.Background(), key, value)
+	assert.Nil(t, error)
+	assert.Equal(t, value, setValue)
+
 	awaitedValue, error := cache.Incr(context.Background(), key)
 	convertedAwaitedValue, ok := awaitedValue.(int)
 

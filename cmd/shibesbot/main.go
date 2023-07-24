@@ -93,7 +93,7 @@ func (sb *Shibesbot) setDailyKey() {
 		return
 	}
 
-	if isUnset == true {
+	if isUnset {
 		count, err := sb.cache.Get(context.Background(), key)
 
 		if err != nil {
