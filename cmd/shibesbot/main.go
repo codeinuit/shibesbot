@@ -79,12 +79,10 @@ func initConfiguration() *Shibesbot {
 	}
 }
 
-func (sb *Shibesbot) setDailyKey() {
-	sb.log.Info("setting daily counter")
+func (sb *Shibesbot) setDailyKey(t time.Time) {
 	sb.mtx.Lock()
 	defer sb.mtx.Unlock()
 
-	t := time.Now()
 	key := fmt.Sprintf("usage:%d%d%d", t.Day(), t.Month(), t.Year())
 
 	isUnset, err := sb.cache.SetNX(context.Background(), key, 0)
@@ -94,20 +92,6 @@ func (sb *Shibesbot) setDailyKey() {
 	}
 
 	if isUnset {
-		count, err := sb.cache.Get(context.Background(), key)
-
-		if err != nil {
-			sb.log.Warn("could not update and retrieve usage count: ", err.Error())
-			return
-		}
-
-		countInt, ok := count.(int64)
-		if !ok {
-			sb.log.Warn("could not set daily counter")
-			return
-		}
-
-		sb.setDailyCounter(countInt)
 		sb.dailyKey = key
 
 		return
@@ -139,8 +123,9 @@ func main() {
 	}()
 
 	_, err := c.AddFunc("0 0 * * *", func() {
-		sb.log.Info("running daily counter update job")
-		sb.setDailyKey()
+		sb.log.Info("updating usage count status")
+		sb.setDailyKey(time.Now())
+		sb.setDailyCounter(0)
 	})
 
 	if err != nil {
