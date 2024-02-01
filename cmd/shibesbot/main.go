@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/P147x/shibesbot/cmd/shibesbot/monitoring"
 	"github.com/P147x/shibesbot/pkg/cache"
 	"github.com/P147x/shibesbot/pkg/cache/redis"
 	"github.com/P147x/shibesbot/pkg/logger"
@@ -103,6 +104,7 @@ func main() {
 	sb.initRequests()
 	sb.log.Info("starting Shibesbot")
 	c := cron.New()
+	monitor := monitoring.NewHTTPMonitorServer(sb.log)
 
 	if len(sb.apiConfigurations.discordToken) <= 0 {
 		sb.log.Error("environnement variable SHIBESBOT_TOKEN is not provided")
@@ -134,7 +136,11 @@ func main() {
 	}
 
 	c.Start()
-	defer c.Stop()
+	go monitor.Run()
+	defer func() {
+		monitor.Stop()
+		c.Stop()
+	}()
 
 	sb.log.Info("shibesbot OK, ready to nicely bork on people")
 
