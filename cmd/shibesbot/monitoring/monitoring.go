@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/P147x/shibesbot/pkg/logger"
+	"github.com/codeinuit/shibesbot/pkg/logger"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 

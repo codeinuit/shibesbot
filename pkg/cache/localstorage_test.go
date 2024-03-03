@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/P147x/shibesbot/pkg/cache"
-	"github.com/P147x/shibesbot/pkg/cache/localstorage"
+	"github.com/codeinuit/shibesbot/pkg/cache"
+	"github.com/codeinuit/shibesbot/pkg/cache/localstorage"
 	"github.com/stretchr/testify/assert"
 )
 
