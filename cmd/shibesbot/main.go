@@ -11,11 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/P147x/shibesbot/cmd/shibesbot/monitoring"
-	"github.com/P147x/shibesbot/pkg/cache"
-	"github.com/P147x/shibesbot/pkg/cache/redis"
-	"github.com/P147x/shibesbot/pkg/logger"
-	"github.com/P147x/shibesbot/pkg/logger/logrus"
+	"github.com/codeinuit/shibesbot/cmd/shibesbot/monitoring"
+	"github.com/codeinuit/shibesbot/pkg/cache"
+	"github.com/codeinuit/shibesbot/pkg/cache/redis"
+	"github.com/codeinuit/shibesbot/pkg/logger"
+	"github.com/codeinuit/shibesbot/pkg/logger/logrus"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/robfig/cron/v3"
 )
