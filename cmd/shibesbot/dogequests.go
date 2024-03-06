@@ -1,13 +1,14 @@
 package main
 
 import (
-	"encoding/json"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 
-	"github.com/bwmarrin/discordgo"
 	"github.com/ivolo/go-giphy"
+
+	"encoding/json"
+
+	"github.com/bwmarrin/discordgo"
 )
 
 var (
@@ -51,41 +52,22 @@ type ShibesData struct {
 	Wallpapers ShibesWallpapers
 }
 
-func init() {
-	req, err := http.NewRequest("GET", "https://wall.alphacoders.com/api2.0/get.php", nil)
-	if err != nil {
-	}
-	q := req.URL.Query()
-	q.Add("auth", "c8b66cee6ef7022a615da5cbba315f3c")
-	q.Add("method", "search")
-	q.Add("term", "Shiba")
-	req.URL.RawQuery = q.Encode()
-	resp, _ := http.Get(req.URL.String())
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	var res AlphacodersData
-	json.Unmarshal(body, &res)
-	Shibes.Wallpapers.Shibes = make([]WallpaperData, len(res.Wallpapers))
-	Shibes.Wallpapers.Shibes = res.Wallpapers
-	Shibes.Wallpapers.Total = len(res.Wallpapers)
-
-	gp := giphy.New("PcVZFoFsmh2vhFHqSKjhvbnwq74N7JSi")
-	Shibes.Gifs.Shibes, _ = gp.Search("shiba")
-	Shibes.Gifs.Total = len(Shibes.Gifs.Shibes)
-	Shibes.Gifs.Cursor = 0
-}
-
-func getShibes() string {
+func (sb *Shibesbot) getShibes() string {
 	if Shibes.Images.Cursor >= Shibes.Images.Total {
 		Shibes.Images.Cursor = 0
 		Shibes.Images.Total = 10
 		resp, err := http.Get("http://shibe.online/api/shibes?count=10")
-		if err == nil {
-			defer resp.Body.Close()
-			body, _ := ioutil.ReadAll(resp.Body)
-			json.Unmarshal(body, &Shibes.Images.Shibes)
+		if err != nil {
+			sb.log.Warn("could not get images from shibes.online: ", err.Error())
+			return ""
 		}
+		defer resp.Body.Close()
+		err = json.NewDecoder(resp.Body).Decode(&Shibes.Images.Shibes)
+		if err != nil {
+			sb.log.Warn("could not get images from shibes.online: ", err.Error())
+			return ""
+		}
+		sb.log.Info("Updated ", Shibes.Images.Total, " pictures from shibes.online")
 	}
 	Shibes.Images.Cursor++
 	return Shibes.Images.Shibes[Shibes.Images.Cursor-1]
@@ -115,9 +97,15 @@ func getHelp() *discordgo.MessageEmbed {
 }
 
 func getShibesGifs() string {
+	if Shibes.Gifs.Total <= 0 {
+		return "no gifs available, sorry. :("
+	}
 	return Shibes.Gifs.Shibes[rand.Int()%Shibes.Gifs.Total].URL
 }
 
 func getShibesWallpaper() string {
+	if Shibes.Wallpapers.Total <= 0 {
+		return "no wallpapers available, sorry. :("
+	}
 	return string(Shibes.Wallpapers.Shibes[rand.Int()%Shibes.Wallpapers.Total].Url_Image)
 }
