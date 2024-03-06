@@ -8,6 +8,11 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+type Monitoring interface {
+	Run()
+	Stop()
+}
+
 type HttpMonitor struct {
 	log logger.Logger
 	srv *http.Server

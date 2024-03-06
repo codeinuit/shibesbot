@@ -3,16 +3,17 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
 
 	"github.com/codeinuit/shibesbot/cmd/shibesbot/monitoring"
 	"github.com/codeinuit/shibesbot/pkg/cache"
+	"github.com/codeinuit/shibesbot/pkg/cache/localstorage"
 	"github.com/codeinuit/shibesbot/pkg/cache/redis"
 	"github.com/codeinuit/shibesbot/pkg/logger"
 	"github.com/codeinuit/shibesbot/pkg/logger/logrus"
@@ -23,10 +24,12 @@ import (
 
 // ENV variables
 const (
+	// Token configuration
 	DISCORD_TOKEN      = "SHIBESBOT_TOKEN"
-	ALPHACODERS_TOKEN  = "ALPHACODERS_TOKEN"
 	SHIBESONLINE_TOKEN = "SHIBESONLINE_TOKEN"
-	GIPHY_TOKEN        = "GIPHY_TOKEN"
+
+	// Flags
+	ENV_CACHE = "CACHE"
 
 	// Redis configuration
 	REDIS_ADDR = "REDIS_ADDR"
@@ -37,9 +40,7 @@ const (
 
 type ApiConfigurations struct {
 	discordToken     string
-	alphacodersToken string
 	shibesolineToken string
-	giphyToken       string
 }
 
 type Shibesbot struct {
@@ -53,32 +54,39 @@ type Shibesbot struct {
 	cache             cache.Cache
 }
 
-func initConfiguration() *Shibesbot {
-	port, err := strconv.Atoi(os.Getenv(REDIS_PORT))
-	if err != nil {
-		port = 6379
-	}
+func NewShibesbot() (*Shibesbot, error) {
+	var cache cache.Cache = localstorage.NewLocalStorageCache()
+	var log logger.Logger = logrus.NewLogrusLogger()
+	var err error
 
-	r, err := redis.NewRedisCache(redis.RedisOptions{
-		Address:  os.Getenv(REDIS_ADDR),
-		Port:     int32(port),
-		Password: os.Getenv(REDIS_PASS),
-	})
+	// check if Redis is enabled; otherwise fallback to local storage
+	if c := os.Getenv(ENV_CACHE); strings.ToUpper(c) == "REDIS" {
+		var port int
 
-	if err != nil {
-		log.Fatal(err.Error())
+		log.Info("Redis enabled")
+
+		address := os.Getenv(REDIS_ADDR)
+		if port, err = strconv.Atoi(os.Getenv(REDIS_PORT)); err != nil {
+			log.Warnf("environnement variable %s is undefined; using default value", REDIS_PORT)
+			port = 6379
+		}
+		log.Infof("using Redis on %s with port %d", address, port)
+
+		cache, err = redis.NewRedisCache(redis.RedisOptions{
+			Address:  address,
+			Port:     int32(port),
+			Password: os.Getenv(REDIS_PASS),
+		})
 	}
 
 	return &Shibesbot{
-		cache: r,
-		log:   logrus.NewLogrusLogger(),
+		cache: cache,
+		log:   log,
 		apiConfigurations: ApiConfigurations{
 			discordToken:     os.Getenv(DISCORD_TOKEN),
-			alphacodersToken: os.Getenv(ALPHACODERS_TOKEN),
 			shibesolineToken: os.Getenv(SHIBESONLINE_TOKEN),
-			giphyToken:       os.Getenv(GIPHY_TOKEN),
 		},
-	}
+	}, err
 }
 
 func (sb *Shibesbot) setDailyKey(t time.Time) {
@@ -101,31 +109,35 @@ func (sb *Shibesbot) setDailyKey(t time.Time) {
 }
 
 func main() {
-	sb := initConfiguration()
-	sb.initRequests()
-	sb.log.Info("starting Shibesbot")
+	sb, err := NewShibesbot()
+	if err != nil {
+		fmt.Printf("could not initialize bot : %s", err.Error())
+		os.Exit(1)
+	}
+
+	sb.log.Info("starting bot")
 	c := cron.New()
 	monitor := monitoring.NewHTTPMonitorServer(sb.log)
 
 	if len(sb.apiConfigurations.discordToken) <= 0 {
-		sb.log.Error("environnement variable SHIBESBOT_TOKEN is not provided")
+		sb.log.Errorf("environnement variable %s is not provided", SHIBESONLINE_TOKEN)
 		return
 	}
 
 	if err := sb.initDiscord(); err != nil {
 		sb.log.Error("connexion error: ", err.Error())
-		return
+		os.Exit(1)
 	}
 	defer func() {
 		if err := sb.session.Close(); err != nil {
 			sb.log.Error("discord session could not close properly:", err.Error())
-			return
+			os.Exit(1)
 		}
 
 		sb.log.Info("discord session closed successfully")
 	}()
 
-	_, err := c.AddFunc("0 0 * * *", func() {
+	_, err = c.AddFunc("0 0 * * *", func() {
 		sb.log.Info("updating usage count status")
 		sb.setDailyKey(time.Now())
 		sb.setDailyCounter(0)
@@ -133,7 +145,7 @@ func main() {
 
 	if err != nil {
 		sb.log.Error("could not create cronjob: ", err.Error())
-		return
+		os.Exit(1)
 	}
 
 	c.Start()
