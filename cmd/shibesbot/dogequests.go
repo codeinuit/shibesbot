@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"math/rand"
 	"net/http"
 
@@ -51,80 +50,6 @@ type ShibesData struct {
 	Images     ShibesPictures
 	Gifs       ShibesGifs
 	Wallpapers ShibesWallpapers
-}
-
-func initWallpapers(t string) (wp ShibesWallpapers, err error) {
-	wpEmpty := ShibesWallpapers{
-		Cursor: 0,
-		Total:  0,
-		Shibes: make([]WallpaperData, 0),
-	}
-
-	if len(t) <= 0 {
-		return wpEmpty, errors.New("no alphacoders token provided, skipping")
-	}
-	req, err := http.NewRequest("GET", "https://wall.alphacoders.com/api2.0/get.php", nil)
-	if err != nil {
-		return wpEmpty, err
-	}
-
-	q := req.URL.Query()
-	q.Add("auth", t)
-	q.Add("method", "search")
-	q.Add("term", "Shiba")
-	req.URL.RawQuery = q.Encode()
-	resp, err := http.Get(req.URL.String())
-	if err != nil {
-		return wpEmpty, err
-	}
-	defer resp.Body.Close()
-	var res AlphacodersData
-	err = json.NewDecoder(resp.Body).Decode(&res)
-	if err != nil {
-		return wpEmpty, err
-	}
-
-	wp.Shibes = make([]WallpaperData, len(res.Wallpapers))
-	wp.Shibes = res.Wallpapers
-	wp.Total = len(res.Wallpapers)
-
-	return wp, nil
-}
-
-func initGifs(t string) (ShibesGifs, error) {
-	var gifs ShibesGifs
-
-	if len(t) <= 0 {
-		return ShibesGifs{
-			Cursor: 0,
-			Shibes: make([]giphy.Gif, 0),
-			Total:  0,
-		}, errors.New("no giphy token provided, skipping")
-	}
-
-	gp := giphy.New(t)
-	gifs.Shibes, _ = gp.Search("shiba")
-	gifs.Total = len(gifs.Shibes)
-	gifs.Cursor = 0
-
-	return gifs, nil
-}
-
-func (sb *Shibesbot) initRequests() {
-	var err error
-
-	Shibes.Wallpapers, err = initWallpapers(sb.apiConfigurations.alphacodersToken)
-	sb.log.Info("retrieved ", Shibes.Wallpapers.Total, " wallpapers")
-	if err != nil {
-		sb.log.Warn("could not retrieve wallpapers: ", err.Error())
-	}
-
-	Shibes.Gifs, err = initGifs(sb.apiConfigurations.giphyToken)
-	sb.log.Info("retrieved ", Shibes.Gifs.Total, " gifs")
-	if err != nil {
-		sb.log.Warn("could not retrieve gifs: ", err.Error())
-	}
-
 }
 
 func (sb *Shibesbot) getShibes() string {
