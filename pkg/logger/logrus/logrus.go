@@ -13,6 +13,14 @@ func NewLogrusLogger() *LogrusLogger {
 	}
 }
 
+func (l LogrusLogger) Debug(v ...any) {
+	l.logger.Debug(v...)
+}
+
+func (l LogrusLogger) Debugf(format string, v ...any) {
+	l.logger.Debugf(format, v...)
+}
+
 func (l LogrusLogger) Info(v ...any) {
 	l.logger.Info(v...)
 }
