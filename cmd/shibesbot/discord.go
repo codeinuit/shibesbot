@@ -25,13 +25,6 @@ var (
 			},
 		},
 		{
-			Name:        "swalls",
-			Description: "Returns a wallpaper with a Shiba ina !",
-		},
-		{
-			Name:        "sgifs",
-			Description: "Returns a gif with a Shiba ina !"},
-		{
 			Name:        "shelp",
 			Description: "Returns helper",
 		},
@@ -92,8 +85,6 @@ func (sb *Shibesbot) commandPicker(s *discordgo.Session, i *discordgo.Interactio
 	switch i.ApplicationCommandData().Name {
 	case "shibes":
 		response = sb.getShibes()
-	case "sgifs":
-		response = getShibesGifs()
 	case "shelp":
 		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
@@ -104,19 +95,14 @@ func (sb *Shibesbot) commandPicker(s *discordgo.Session, i *discordgo.Interactio
 		if err != nil {
 			sb.log.Error("could not answer to user help command: ", err.Error())
 		}
-		return
-	case "swalls":
-		response = getShibesWallpaper()
 	}
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	if err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Content: response,
 		},
-	})
-
-	if err != nil {
+	}); err != nil {
 		sb.log.Error("could not answer to user help command: ", err.Error())
 		return
 	}
