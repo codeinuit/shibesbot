@@ -69,9 +69,10 @@ func (sb *Shibesbot) initDiscord() error {
 		return err
 	}
 
+	sb.log.Debug("updating Discord command list")
 	for _, cmd := range commands {
-		_, err := sb.session.ApplicationCommandCreate(sb.session.State.User.ID, "", cmd)
-		if err != nil {
+		sb.log.Debugf("adding command %s", cmd.Name)
+		if _, err := sb.session.ApplicationCommandCreate(sb.session.State.User.ID, "", cmd); err != nil {
 			return err
 		}
 	}
