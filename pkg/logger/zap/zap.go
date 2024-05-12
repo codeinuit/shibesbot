@@ -13,6 +13,14 @@ func NewSugarLogger() ZapSugarLogger {
 	}
 }
 
+func (z ZapSugarLogger) Debug(v ...any) {
+	z.logger.Debug(v)
+}
+
+func (z ZapSugarLogger) Debugf(format string, v ...any) {
+	z.logger.Debugf(format, v...)
+}
+
 func (z ZapSugarLogger) Info(v ...any) {
 	z.logger.Info(v)
 }
