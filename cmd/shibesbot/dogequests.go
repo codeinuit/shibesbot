@@ -1,10 +1,7 @@
 package main
 
 import (
-	"math/rand"
 	"net/http"
-
-	"github.com/ivolo/go-giphy"
 
 	"encoding/json"
 
@@ -15,41 +12,14 @@ var (
 	Shibes ShibesData
 )
 
-type WallpaperData struct {
-	Id        int
-	Width     int
-	Height    int
-	Url_Image string
-}
-
-type AlphacodersData struct {
-	Success     bool
-	Wallpapers  []WallpaperData
-	Total_Match int
-}
-
 type ShibesPictures struct {
 	Shibes []string
 	Total  int
 	Cursor int
 }
 
-type ShibesGifs struct {
-	Shibes []giphy.Gif
-	Total  int
-	Cursor int
-}
-
-type ShibesWallpapers struct {
-	Shibes []WallpaperData
-	Total  int
-	Cursor int
-}
-
 type ShibesData struct {
-	Images     ShibesPictures
-	Gifs       ShibesGifs
-	Wallpapers ShibesWallpapers
+	Images ShibesPictures
 }
 
 func (sb *Shibesbot) getShibes() string {
@@ -85,27 +55,11 @@ func getHelp() *discordgo.MessageEmbed {
 			{
 				Name: "Available commands",
 				Value: "- *shibes* to get a random shibe !\n" +
-					"- *sgifs* to get a random gif of shiba !\n" +
-					"- *shelp* to get help\n" +
-					"- *swalls* to get an amazing shibe wallpaper",
+					"- *shelp* to get help",
 				Inline: false,
 			},
 		},
 		Title: "Hello shibes !",
 	}
 	return test
-}
-
-func getShibesGifs() string {
-	if Shibes.Gifs.Total <= 0 {
-		return "no gifs available, sorry. :("
-	}
-	return Shibes.Gifs.Shibes[rand.Int()%Shibes.Gifs.Total].URL
-}
-
-func getShibesWallpaper() string {
-	if Shibes.Wallpapers.Total <= 0 {
-		return "no wallpapers available, sorry. :("
-	}
-	return string(Shibes.Wallpapers.Shibes[rand.Int()%Shibes.Wallpapers.Total].Url_Image)
 }
