@@ -25,8 +25,8 @@ import (
 // ENV variables
 const (
 	// Token configuration
-	DISCORD_TOKEN      = "SHIBESBOT_TOKEN"
-	SHIBESONLINE_TOKEN = "SHIBESONLINE_TOKEN"
+	DISCORD_TOKEN = "SHIBESBOT_TOKEN"
+	CDN_URL       = "SHIBESBOT_CDN_URL"
 
 	// Flags
 	ENV_CACHE = "CACHE"
@@ -39,8 +39,8 @@ const (
 )
 
 type ApiConfigurations struct {
-	discordToken     string
-	shibesolineToken string
+	discordToken string
+	cdnURL       string
 }
 
 type Shibesbot struct {
@@ -83,8 +83,8 @@ func NewShibesbot() (*Shibesbot, error) {
 		cache: cache,
 		log:   log,
 		apiConfigurations: ApiConfigurations{
-			discordToken:     os.Getenv(DISCORD_TOKEN),
-			shibesolineToken: os.Getenv(SHIBESONLINE_TOKEN),
+			discordToken: os.Getenv(DISCORD_TOKEN),
+			cdnURL:       os.Getenv(CDN_URL),
 		},
 	}, err
 }
@@ -120,7 +120,12 @@ func main() {
 	monitor := monitoring.NewHTTPMonitorServer(sb.log)
 
 	if len(sb.apiConfigurations.discordToken) <= 0 {
-		sb.log.Errorf("environnement variable %s is not provided", SHIBESONLINE_TOKEN)
+		sb.log.Errorf("environnement variable %s is not provided", DISCORD_TOKEN)
+		return
+	}
+
+	if len(sb.apiConfigurations.cdnURL) <= 0 {
+		sb.log.Errorf("environnement variable %s is not provided", CDN_URL)
 		return
 	}
 

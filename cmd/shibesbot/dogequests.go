@@ -26,7 +26,7 @@ func (sb *Shibesbot) getShibes() string {
 	if Shibes.Images.Cursor >= Shibes.Images.Total {
 		Shibes.Images.Cursor = 0
 		Shibes.Images.Total = 10
-		resp, err := http.Get("http://shibe.online/api/shibes?count=10")
+		resp, err := http.Get(sb.apiConfigurations.cdnURL + "/api/shibes?count=10")
 		if err != nil {
 			sb.log.Warn("could not get images from shibes.online: ", err.Error())
 			return ""
