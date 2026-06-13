@@ -19,7 +19,7 @@ import (
 	"github.com/codeinuit/shibesbot/pkg/logger/logrus"
 
 	"github.com/bwmarrin/discordgo"
-	"github.com/robfig/cron/v3"
+	cron "github.com/robfig/cron/v3"
 )
 
 // ENV variables
